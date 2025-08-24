@@ -162,7 +162,7 @@ function Search() {
             className={`px-6 py-3 rounded-lg font-semibold bg-transparent text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#976f3e] disabled:opacity-50 disabled:cursor-not-allowed ${
               loading || !query.trim()
                 ? 'bg-gray-600 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#b73939] via-[#976f3e] to-[#7d8f35] hover:opacity-90 shadow-lg hover:shadow-[#976f3e]/30'
+                : ' '
             }`}
           >
             {loading ? (
