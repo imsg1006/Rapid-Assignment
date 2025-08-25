@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Image, BarChart3, Trash2, Calendar, ExternalLink } from 'lucide-react';
+import { Search, Image, BarChart3, Trash2, Calendar, ExternalLink, Edit2, Check, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -10,6 +10,10 @@ function Dashboard() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest"); // newest | oldest
+
+  const [editingSearchId, setEditingSearchId] = useState(null);
+  const [editingImageId, setEditingImageId] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
   const { user } = useAuth();
 
@@ -42,7 +46,6 @@ function Dashboard() {
     }
   };
 
-  // ✅ New: delete image entry
   const deleteImageEntry = async (entryId) => {
     try {
       await api.delete(`/dashboard/image/${entryId}`);
@@ -53,6 +56,49 @@ function Dashboard() {
     } catch (err) {
       console.error('Delete error:', err);
       alert('Failed to delete image');
+    }
+  };
+
+  const startEditing = (type, id, currentValue) => {
+    if (type === "search") {
+      setEditingSearchId(id);
+    } else {
+      setEditingImageId(id);
+    }
+    setEditValue(currentValue);
+  };
+
+  const cancelEditing = () => {
+    setEditingSearchId(null);
+    setEditingImageId(null);
+    setEditValue("");
+  };
+
+  const saveEdit = async (type, id) => {
+    try {
+      if (type === "search") {
+        await api.patch(`/dashboard/search/${id}`, { query: editValue });
+        setData(prev => ({
+          ...prev,
+          searches: prev.searches.map(s =>
+            s.id === id ? { ...s, query: editValue } : s
+          )
+        }));
+        setEditingSearchId(null);
+      } else {
+        await api.patch(`/dashboard/image/${id}`, { prompt: editValue });
+        setData(prev => ({
+          ...prev,
+          images: prev.images.map(img =>
+            img.id === id ? { ...img, prompt: editValue } : img
+          )
+        }));
+        setEditingImageId(null);
+      }
+      setEditValue("");
+    } catch (err) {
+      console.error("Edit error:", err);
+      alert("Failed to update entry");
     }
   };
 
@@ -94,7 +140,7 @@ function Dashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back, {user?.username}!
+            Welcome back!
           </h1>
           <p className="text-gray-200">
             Here's what's happening with your AI content exploration
@@ -220,7 +266,16 @@ function Dashboard() {
                         className="flex items-center justify-between p-4 bg-black/30 rounded-lg border border-white/10"
                       >
                         <div className="flex-1">
-                          <h3 className="text-white font-medium mb-1">{search.query}</h3>
+                          {editingSearchId === search.id ? (
+                            <input
+                              type="text"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="w-full p-2 rounded bg-black/50 text-white border border-white/20"
+                            />
+                          ) : (
+                            <h3 className="text-white font-medium mb-1">{search.query}</h3>
+                          )}
                           <div className="flex items-center gap-4 text-sm text-gray-200">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
@@ -230,18 +285,43 @@ function Dashboard() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Link
-                            to={`/search?query=${encodeURIComponent(search.query)}`}
-                            className="p-2 text-blue-200 hover:text-blue-100 transition-colors duration-200"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Link>
-                          <button
-                            onClick={() => deleteSearchEntry(search.id)}
-                            className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {editingSearchId === search.id ? (
+                            <>
+                              <button
+                                onClick={() => saveEdit("search", search.id)}
+                                className="p-2 text-green-300 hover:text-green-200"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={cancelEditing}
+                                className="p-2 text-gray-300 hover:text-gray-200"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <Link
+                                to={`/search?query=${encodeURIComponent(search.query)}`}
+                                className="p-2 text-blue-200 hover:text-blue-100 transition-colors duration-200"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </Link>
+                              <button
+                                onClick={() => startEditing("search", search.id, search.query)}
+                                className="p-2 text-yellow-300 hover:text-yellow-200"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => deleteSearchEntry(search.id)}
+                                className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -273,7 +353,16 @@ function Dashboard() {
                         />
                         <div className="p-4 flex-1 flex flex-col justify-between">
                           <div>
-                            <p className="text-white text-sm mb-2 line-clamp-2">{image.prompt}</p>
+                            {editingImageId === image.id ? (
+                              <input
+                                type="text"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="w-full p-2 rounded bg-black/50 text-white border border-white/20 text-sm"
+                              />
+                            ) : (
+                              <p className="text-white text-sm mb-2 line-clamp-2">{image.prompt}</p>
+                            )}
                             <div className="flex items-center justify-between text-xs text-gray-200">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
@@ -282,18 +371,45 @@ function Dashboard() {
                             </div>
                           </div>
                           <div className="flex items-center justify-between mt-2">
-                            <Link
-                              to={`/image-gen?prompt=${encodeURIComponent(image.prompt)}`}
-                              className="text-blue-200 hover:text-blue-100 text-xs transition-colors duration-200"
-                            >
-                              Regenerate
-                            </Link>
-                            <button
-                              onClick={() => deleteImageEntry(image.id)}
-                              className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {editingImageId === image.id ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => saveEdit("image", image.id)}
+                                  className="p-2 text-green-300 hover:text-green-200"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={cancelEditing}
+                                  className="p-2 text-gray-300 hover:text-gray-200"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <Link
+                                  to={`/image-gen?prompt=${encodeURIComponent(image.prompt)}`}
+                                  className="text-blue-200 hover:text-blue-100 text-xs transition-colors duration-200"
+                                >
+                                  Regenerate
+                                </Link>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => startEditing("image", image.id, image.prompt)}
+                                    className="p-2 text-yellow-300 hover:text-yellow-200"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteImageEntry(image.id)}
+                                    className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
