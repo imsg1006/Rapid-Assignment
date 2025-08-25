@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Image, BarChart3, Plus, Trash2, Calendar, ExternalLink } from 'lucide-react';
+import { Search, Image, BarChart3, Trash2, Calendar, ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -8,6 +8,8 @@ function Dashboard() {
   const [data, setData] = useState({ searches: [], images: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest"); // newest | oldest
 
   const { user } = useAuth();
 
@@ -36,9 +38,30 @@ function Dashboard() {
       }));
     } catch (err) {
       console.error('Delete error:', err);
-      console.error('Delete error details:', err.response?.data);
       alert('Failed to delete entry');
     }
+  };
+
+  // ✅ New: delete image entry
+  const deleteImageEntry = async (entryId) => {
+    try {
+      await api.delete(`/dashboard/image/${entryId}`);
+      setData(prev => ({
+        ...prev,
+        images: prev.images.filter(image => image.id !== entryId)
+      }));
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Failed to delete image');
+    }
+  };
+
+  const sortByDate = (arr) => {
+    return [...arr].sort((a, b) => {
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
   };
 
   if (loading) {
@@ -148,131 +171,142 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* The rest (Recent Searches & Images) remains same, only accent colors adjusted */}
-        <div className="bg-gradient-to-r from-[#b73939] via-[#976f3e] to-[#7d8f35] backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
-  <div className="flex items-center justify-between mb-6">
-    <h2 className="text-xl font-semibold text-white">Recent Searches</h2>
-    <Link
-      to="/search"
-      className="inline-flex items-center gap-2 text-purple-200 hover:text-purple-100 transition-colors duration-200"
-    >
-      <Plus className="w-4 h-4" />
-      New Search
-    </Link>
-  </div>
+        {/* Recent Results with Tabs & Sort */}
+        <div className="bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <h2 className="text-xl font-semibold text-white">Recent Results</h2>
 
-  {data.searches && data.searches.length > 0 ? (
-    <div className="space-y-4">
-      {data.searches.slice(0, 5).map((search) => (
-        <div
-          key={search.id}
-          className="flex items-center justify-between p-4 bg-black/30 rounded-lg border border-white/10"
-        >
-          <div className="flex-1">
-            <h3 className="text-white font-medium mb-1">{search.query}</h3>
-            <div className="flex items-center gap-4 text-sm text-gray-200">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                {new Date(search.timestamp).toLocaleDateString()}
-              </span>
-              <span>{search.results?.length || 0} results</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to={`/search?query=${encodeURIComponent(search.query)}`}
-              className="p-2 text-blue-200 hover:text-blue-100 transition-colors duration-200"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Link>
-            <button
-              onClick={() => deleteSearchEntry(search.id)}
-              className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div className="text-center py-8">
-      <Search className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-      <p className="text-gray-200 mb-2">No web searches yet</p>
-      <Link
-        to="/search"
-        className="inline-flex items-center gap-2 mt-2 text-purple-200 hover:text-purple-100 transition-colors duration-200"
-      >
-        Start your first search
-        <Plus className="w-4 h-4" />
-      </Link>
-    </div>
-  )}
-</div>
+            <div className="flex flex-wrap gap-2">
+              {["all", "search", "image"].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    activeTab === tab
+                      ? tab === "all"
+                        ? "bg-[#976f3e] text-white"
+                        : tab === "search"
+                        ? "bg-[#b73939] text-white"
+                        : "bg-[#7d8f35] text-white"
+                      : "bg-black/40 text-gray-300 hover:bg-black/60"
+                  }`}
+                >
+                  {tab === "all" ? "All" : tab === "search" ? "Web Search" : "Image Gen"}
+                </button>
+              ))}
 
-{/* Recent Images */}
-<div className="bg-gradient-to-r from-[#b73939] via-[#976f3e] to-[#7d8f35] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-  <div className="flex items-center justify-between mb-6">
-    <h2 className="text-xl font-semibold text-white">Recent Images</h2>
-    <Link
-      to="/image-gen"
-      className="inline-flex items-center gap-2 text-blue-200 hover:text-blue-100 transition-colors duration-200"
-    >
-      <Plus className="w-4 h-4" />
-      Generate New Image
-    </Link>
-  </div>
-
-  {data.images && data.images.length > 0 ? (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {data.images.slice(0, 6).map((image) => (
-        <div
-          key={image.id}
-          className="bg-black/30 rounded-lg border border-white/10 overflow-hidden"
-        >
-          <img
-            src={image.image_url}
-            alt={image.prompt}
-            className="w-full h-32 object-cover"
-            onError={(e) => {
-              e.target.src =
-                "https://via.placeholder.com/300x200?text=Image+Not+Available";
-            }}
-          />
-          <div className="p-4">
-            <p className="text-white text-sm mb-2 line-clamp-2">{image.prompt}</p>
-            <div className="flex items-center justify-between text-xs text-gray-200">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {new Date(image.timestamp).toLocaleDateString()}
-              </span>
-              <Link
-                to={`/image-gen?prompt=${encodeURIComponent(image.prompt)}`}
-                className="text-blue-200 hover:text-blue-100 transition-colors duration-200"
+              {/* Sort Dropdown */}
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-black/40 text-gray-200 text-sm border border-white/10"
               >
-                Regenerate
-              </Link>
+                <option value="newest">Latest</option>
+                <option value="oldest">Oldest</option>
+              </select>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div className="text-center py-8">
-      <Image className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-      <p className="text-gray-200 mb-2">No images generated yet</p>
-      <Link
-        to="/image-gen"
-        className="inline-flex items-center gap-2 mt-2 text-blue-200 hover:text-blue-100 transition-colors duration-200"
-      >
-        Generate your first image
-        <Plus className="w-4 h-4" />
-      </Link>
-    </div>
-  )}
-</div>
 
+          {/* Content */}
+          <div className="space-y-8">
+            {(activeTab === "all" || activeTab === "search") && (
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Recent Searches</h3>
+                {data.searches && data.searches.length > 0 ? (
+                  <div className="space-y-4">
+                    {sortByDate(data.searches).slice(0, 5).map((search) => (
+                      <div
+                        key={search.id}
+                        className="flex items-center justify-between p-4 bg-black/30 rounded-lg border border-white/10"
+                      >
+                        <div className="flex-1">
+                          <h3 className="text-white font-medium mb-1">{search.query}</h3>
+                          <div className="flex items-center gap-4 text-sm text-gray-200">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {new Date(search.timestamp).toLocaleDateString()}
+                            </span>
+                            <span>{search.results?.length || 0} results</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/search?query=${encodeURIComponent(search.query)}`}
+                            className="p-2 text-blue-200 hover:text-blue-100 transition-colors duration-200"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => deleteSearchEntry(search.id)}
+                            className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-300">No web searches yet</p>
+                )}
+              </div>
+            )}
+
+            {(activeTab === "all" || activeTab === "image") && (
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Recent Images</h3>
+                {data.images && data.images.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {sortByDate(data.images).slice(0, 6).map((image) => (
+                      <div
+                        key={image.id}
+                        className="bg-black/30 rounded-lg border border-white/10 overflow-hidden flex flex-col"
+                      >
+                        <img
+                          src={image.image_url}
+                          alt={image.prompt}
+                          className="w-full h-32 object-cover"
+                          onError={(e) => {
+                            e.target.src =
+                              "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                          }}
+                        />
+                        <div className="p-4 flex-1 flex flex-col justify-between">
+                          <div>
+                            <p className="text-white text-sm mb-2 line-clamp-2">{image.prompt}</p>
+                            <div className="flex items-center justify-between text-xs text-gray-200">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(image.timestamp).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <Link
+                              to={`/image-gen?prompt=${encodeURIComponent(image.prompt)}`}
+                              className="text-blue-200 hover:text-blue-100 text-xs transition-colors duration-200"
+                            >
+                              Regenerate
+                            </Link>
+                            <button
+                              onClick={() => deleteImageEntry(image.id)}
+                              className="p-2 text-red-300 hover:text-red-200 transition-colors duration-200"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-300">No images generated yet</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+      </div>
     </div>
   );
 }

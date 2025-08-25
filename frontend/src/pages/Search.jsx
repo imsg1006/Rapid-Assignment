@@ -65,37 +65,9 @@ function Search() {
     }
   };
 
-  const clearHistory = async () => {
-    try {
-      // Clear from backend (delete all search entries)
-      const response = await api.get('/dashboard/');
-      if (response.data.searches) {
-        for (const search of response.data.searches) {
-          try {
-            await api.delete(`/dashboard/search/${search.id}`);
-          } catch (err) {
-            console.error(`Failed to delete search ${search.id}:`, err);
-          }
-        }
-      }
-      setSearchHistory([]);
-    } catch (err) {
-      console.error('Failed to clear search history:', err);
-      // Fallback to just clearing local state
-      setSearchHistory([]);
-    }
-  };
+  
 
-  const removeFromHistory = async (id) => {
-    try {
-      await api.delete(`/dashboard/search/${id}`);
-      setSearchHistory(prev => prev.filter(item => item.id !== id));
-    } catch (err) {
-      console.error('Failed to delete search entry:', err);
-      // Fallback to just removing from local state
-      setSearchHistory(prev => prev.filter(item => item.id !== id));
-    }
-  };
+  
 
   const repeatSearch = (query) => {
     setQuery(query);
@@ -257,14 +229,6 @@ function Search() {
           <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-white">Recent Searches</h3>
-              {searchHistory.length > 0 && (
-                <button
-                  onClick={clearHistory}
-                  className="text-sm text-red-400 hover:text-red-300 transition-colors duration-200"
-                >
-                  Clear All
-                </button>
-              )}
             </div>
             
             <div className="divide-y divide-white/10">
@@ -300,12 +264,6 @@ function Search() {
                             {parsedResults.length} results
                           </p>
                         </div>
-                        <button
-                          onClick={() => removeFromHistory(item.id)}
-                          className="ml-2 p-1 text-red-400 hover:text-red-300 transition-colors duration-200"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
                   );

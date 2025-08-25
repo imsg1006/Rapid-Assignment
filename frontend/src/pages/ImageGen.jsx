@@ -18,6 +18,20 @@ function ImageGen() {
     fetchGenerationHistory();
   }, [user?.id]);
 
+
+   const deleteImageEntry = async (entryId) => {
+      try {
+        await api.delete(`/dashboard/image/${entryId}`);
+        setData(prev => ({
+          ...prev,
+          images: prev.images.filter(image => image.id !== entryId)
+        }));
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert('Failed to delete image');
+      }
+    };
+
   const fetchGenerationHistory = async () => {
     try {
       setLoadingHistory(true);
@@ -90,23 +104,7 @@ function ImageGen() {
     }
   };
 
-  const clearHistory = async () => {
-    try {
-      setGenerationHistory([]);
-    } catch (err) {
-      console.error('Failed to clear generation history:', err);
-      setGenerationHistory([]);
-    }
-  };
-
-  const removeFromHistory = async (id) => {
-    try {
-      setGenerationHistory(prev => prev.filter(item => item.id !== id));
-    } catch (err) {
-      console.error('Failed to delete generation entry:', err);
-      setGenerationHistory(prev => prev.filter(item => item.id !== id));
-    }
-  };
+  
 
   const repeatGeneration = (prompt) => {
     setPrompt(prompt);
@@ -298,15 +296,7 @@ function ImageGen() {
   <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl">
     <div className="p-6 border-b border-white/10 flex items-center justify-between">
       <h3 className="text-lg font-semibold text-white">Recent Generations</h3>
-      {generationHistory.length > 0 && (
-        <button
-          onClick={clearHistory}
-          className="text-sm transition-colors duration-200"
-          style={{ color: "#b73939" }}
-        >
-          Clear All
-        </button>
-      )}
+      
     </div>
 
     <div className="divide-y divide-white/10">
@@ -353,13 +343,6 @@ function ImageGen() {
                   {new Date(item.timestamp).toLocaleDateString()}
                 </p>
               </div>
-              <button
-                onClick={() => removeFromHistory(item.id)}
-                className="p-1 transition-colors duration-200"
-                style={{ color: "#b73939" }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </div>
           </div>
         ))

@@ -11,7 +11,7 @@ def get_user_history(user: User = Depends(get_current_user), db: Session = Depen
     images = db.query(ImageHistory).filter(ImageHistory.user_id == user.id).all()
     return {"searches": searches, "images": images}
 
-# Example of a protected endpoint for deleting an item
+# Delete search entry
 @router.delete("/search/{entry_id}")
 def delete_search_entry(entry_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     entry = db.query(SearchHistory).filter(SearchHistory.id == entry_id, SearchHistory.user_id == user.id).first()
@@ -19,4 +19,14 @@ def delete_search_entry(entry_id: int, user: User = Depends(get_current_user), d
         raise HTTPException(status_code=404, detail="Entry not found")
     db.delete(entry)
     db.commit()
-    return {"message": "Entry deleted successfully"}
+    return {"message": "Search entry deleted successfully"}
+
+# ✅ Delete image entry
+@router.delete("/image/{entry_id}")
+def delete_image_entry(entry_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    entry = db.query(ImageHistory).filter(ImageHistory.id == entry_id, ImageHistory.user_id == user.id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Image entry not found")
+    db.delete(entry)
+    db.commit()
+    return {"message": "Image entry deleted successfully"}
