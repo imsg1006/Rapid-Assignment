@@ -7,6 +7,8 @@ from app.routes.dashboard import router as dashboard_router
 from app.database import create_tables, test_database_connection
 from app.config import settings
 import logging
+import os
+import uvicorn
 
 # Set up logging
 logging.basicConfig(
@@ -58,3 +60,6 @@ app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 def read_root():
     return {"message": "Search & Image API is running!", "version": "1.0.0"}
  
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
