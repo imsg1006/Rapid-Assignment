@@ -1,4 +1,4 @@
-# Updated routes/auth.py with debugging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -63,4 +63,3 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(data={"sub": user.username, "is_admin": user.is_admin})
     logger.info(f"Token created successfully for user: {form_data.username}")
     return {"access_token": access_token, "token_type": "bearer"}
-

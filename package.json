@@ -1,0 +1,36 @@
+{
+  "name": "rapid-assignment",
+  "version": "1.0.0",
+  "description": "Full-stack AI application with comprehensive testing",
+  "scripts": {
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing",
+    "test:frontend": "cd frontend && npm run test",
+    "test:backend:unit": "cd backend && python -m pytest tests/unit/ -v",
+    "test:backend:integration": "cd backend && python -m pytest tests/integration/ -v",
+    "test:backend:e2e": "cd backend && python -m pytest tests/e2e/ -v",
+    "test:frontend:e2e": "cd frontend && npx playwright test",
+    "test:frontend:unit": "cd frontend && npm run test:unit",
+    "test:coverage": "npm run test:backend:coverage && npm run test:frontend:coverage",
+    "test:backend:coverage": "cd backend && python -m pytest tests/ --cov=app --cov-report=html --cov-report=term-missing",
+    "test:frontend:coverage": "cd frontend && npm run test:coverage",
+    "test:watch": "concurrently \"npm run test:backend:watch\" \"npm run test:frontend:watch\"",
+    "test:backend:watch": "cd backend && python -m pytest tests/ -f --cov=app",
+    "test:frontend:watch": "cd frontend && npm run test:watch",
+    "test:parallel": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
+    "test:ci": "npm run test:backend:ci && npm run test:frontend:ci",
+    "test:backend:ci": "cd backend && python -m pytest tests/ --cov=app --cov-report=xml --junitxml=test-results.xml",
+    "test:frontend:ci": "cd frontend && npx playwright test --reporter=junit --output=test-results.xml",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "dev": "concurrently \"cd backend && python -m uvicorn app.main:app --reload\" \"cd frontend && npm run dev\"",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

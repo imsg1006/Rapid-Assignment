@@ -57,8 +57,4 @@ app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 @app.get("/")
 def read_root():
     return {"message": "Search & Image API is running!", "version": "1.0.0"}
-
-@app.get("/health")
-def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "timestamp": "2024-01-01T00:00:00Z"}
+ 
