@@ -59,7 +59,8 @@ app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 @app.get("/")
 def read_root():
     return {"message": "Search & Image API is running!", "version": "1.0.0"}
- 
+
+# ---------------- Render-ready entry point ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
     uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
