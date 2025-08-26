@@ -245,7 +245,7 @@ function Landing() {
           </div>
           
           <div className="border-t border-white/10 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 AI Explorer. Powered by advanced AI technology.</p>
+            <p>&copy; Powered by advanced AI technology.</p>
           </div>
         </div>
       </footer>

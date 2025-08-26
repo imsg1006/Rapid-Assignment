@@ -8,6 +8,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+        hmr: {
+          clientPort: 443, // Or 80 for HTTP tunnels
+        },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

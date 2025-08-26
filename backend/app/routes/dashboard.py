@@ -7,30 +7,24 @@ from typing import Optional
 
 router = APIRouter(tags=["dashboard"])
 
-
-# -----------------------------
-# Schemas for PATCH (missing before)
-# -----------------------------
+ 
+# Schemas for PATCH (missing before) 
 class SearchUpdate(BaseModel):
     query: Optional[str] = None
 
 class ImageUpdate(BaseModel):
     prompt: Optional[str] = None
 
-
-# -----------------------------
-# Get full history
-# -----------------------------
+ 
+# Get full history 
 @router.get("/")
 def get_user_history(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     searches = db.query(SearchHistory).filter(SearchHistory.user_id == user.id).all()
     images = db.query(ImageHistory).filter(ImageHistory.user_id == user.id).all()
     return {"searches": searches, "images": images}
 
-
-# -----------------------------
-# Delete search entry
-# -----------------------------
+ 
+# Delete search entry 
 @router.delete("/search/{entry_id}")
 def delete_search_entry(entry_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     entry = db.query(SearchHistory).filter(SearchHistory.id == entry_id, SearchHistory.user_id == user.id).first()
@@ -40,10 +34,8 @@ def delete_search_entry(entry_id: int, user: User = Depends(get_current_user), d
     db.commit()
     return {"message": "Search entry deleted successfully"}
 
-
-# -----------------------------
-# Delete image entry
-# -----------------------------
+ 
+# Delete image entry 
 @router.delete("/image/{entry_id}")
 def delete_image_entry(entry_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     entry = db.query(ImageHistory).filter(ImageHistory.id == entry_id, ImageHistory.user_id == user.id).first()
@@ -53,10 +45,8 @@ def delete_image_entry(entry_id: int, user: User = Depends(get_current_user), db
     db.commit()
     return {"message": "Image entry deleted successfully"}
 
-
-# -----------------------------
-# ✅ PATCH search entry
-# -----------------------------
+ 
+#   PATCH search entry 
 @router.patch("/search/{entry_id}")
 def update_search_entry(
     entry_id: int,
@@ -75,10 +65,8 @@ def update_search_entry(
     db.refresh(entry)
     return {"message": "Search entry updated successfully", "entry": entry}
 
-
-# -----------------------------
-# ✅ PATCH image entry
-# -----------------------------
+ 
+#   PATCH image entry 
 @router.patch("/image/{entry_id}")
 def update_image_entry(
     entry_id: int,
