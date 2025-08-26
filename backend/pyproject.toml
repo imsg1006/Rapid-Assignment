@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.116.1",
     "mcp>=1.13.1",
     "passlib[bcrypt]>=1.7.4",
+    "pytest-cov>=6.2.1",
     "python-dotenv>=1.1.1",
     "python-jose[cryptography]>=3.5.0",
     "starlette>=0.47.2",

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ 
 """
 Unified test runner for both frontend and backend tests.
 Run with: python run_tests.py [options]

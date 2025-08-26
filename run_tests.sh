@@ -1,8 +1,4 @@
-#!/bin/bash
-
-# Unified test runner for both frontend and backend tests
-# Usage: ./run_tests.sh [options]
-
+ 
 set -e  # Exit on any error
 
 # Colors for output
