@@ -9,7 +9,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState("all");
-  const [sortOrder, setSortOrder] = useState("newest"); // newest | oldest
+  const [sortOrder, setSortOrder] = useState("newest");  
 
   const [editingSearchId, setEditingSearchId] = useState(null);
   const [editingImageId, setEditingImageId] = useState(null);
